@@ -330,7 +330,13 @@ export default function App() {
         </details>
       </main>
 
-      <footer>Made for the Christmas Angel ministry · Works entirely in your browser</footer>
+      <footer>
+        Made by{' '}
+        <a href="https://www.linkedin.com/in/alexmarcus1/" target="_blank" rel="noopener noreferrer">
+          Alex Marcus
+        </a>{' '}
+        for the Christmas Angel ministry at the Church of St. Ignatius Loyola · Works entirely in your browser
+      </footer>
     </div>
   )
 }

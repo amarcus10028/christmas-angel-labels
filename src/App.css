@@ -349,3 +349,6 @@ footer {
 .hero + .masthead .star {
   display: none;
 }
+footer a {
+  color: inherit;
+}
