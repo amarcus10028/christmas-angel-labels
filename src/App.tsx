@@ -148,6 +148,36 @@ export default function App() {
       <main>
         <section className="card" aria-labelledby="s-upload">
           <h2 id="s-upload"><span className="step">1</span> Upload Spreadsheet</h2>
+          <details className="howto" open={!fileName}>
+            <summary>How to set up your spreadsheet</summary>
+            <p>
+              Use one row per angel, with a row of column headings at the top. Name the columns like this
+              (capital letters don’t matter, and the columns can be in any order):
+            </p>
+            <div className="sample" role="region" aria-label="Example spreadsheet">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Angel #</th><th>first name</th><th>Last name</th><th>gender</th><th>age</th>
+                    <th>first gift</th><th>second gift</th><th>Third Gift</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>301</td><td>Jane</td><td>Example</td><td>F</td><td>9</td>
+                    <td>Sweater Pink Medium</td><td>Books</td><td>Heater</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <ul>
+              <li><strong>Angel #</strong> and the <strong>name</strong> are required. Every angel number must be different.</li>
+              <li><strong>gender</strong> (M or F), <strong>age</strong> and gifts are optional. If they’re blank, that line is left off the label.</li>
+              <li>Need more gifts? Add another column with “gift” in the heading, such as <strong>fourth gift</strong>.</li>
+              <li>Gifts print exactly as typed, so include sizes and colors.</li>
+              <li>Skipped numbers are fine. Rows don’t need to be in order.</li>
+            </ul>
+          </details>
           <label
             className={`drop ${dragOver ? 'over' : ''} ${fileName ? 'has-file' : ''}`}
             onDragOver={(e) => {
@@ -169,13 +199,13 @@ export default function App() {
             />
             {fileName ? (
               <>
-                <span className="drop-file">📄 {fileName}</span>
-                <span className="drop-hint">{reading ? 'Reading…' : 'Drop a different file here, or click to choose another'}</span>
+                <span className="drop-file">{reading ? 'Reading…' : <>✓ Using <strong>{fileName}</strong></>}</span>
+                <span className="drop-change">Wrong file? Click here to choose a different spreadsheet</span>
               </>
             ) : (
               <>
                 <span className="drop-title">Drop your Excel spreadsheet here</span>
-                <span className="drop-hint">or click to choose a file (.xlsx)</span>
+                <span className="drop-hint">or click here to choose the file (.xlsx)</span>
               </>
             )}
           </label>

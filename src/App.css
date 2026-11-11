@@ -262,3 +262,64 @@ footer {
   font-size: 13px;
   margin-top: 28px;
 }
+
+/* Loaded-file state: clearly "done", with an obvious way to change it. */
+.drop.has-file {
+  border-style: solid;
+  border-color: var(--green);
+  background: var(--soft-green);
+  padding: 18px 16px;
+}
+.drop-file {
+  color: var(--green);
+}
+.drop-change {
+  color: var(--green);
+  text-decoration: underline;
+  font-size: 15px;
+}
+
+/* Spreadsheet instructions */
+.howto {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  background: var(--soft);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.howto summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.howto p {
+  margin: 10px 0 8px;
+}
+.howto ul {
+  margin: 8px 0 0;
+  padding-left: 20px;
+}
+.howto li {
+  margin: 3px 0;
+}
+.sample {
+  overflow-x: auto;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  background: #fff;
+}
+.sample table {
+  border-collapse: collapse;
+  font-size: 13px;
+  white-space: nowrap;
+  width: 100%;
+}
+.sample th,
+.sample td {
+  border: 1px solid #e1e1e1;
+  padding: 4px 8px;
+  text-align: left;
+}
+.sample th {
+  background: #eef2ee;
+  font-weight: 600;
+}
