@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
+import churchPhoto from './assets/church.jpg'
 import { parseWorkbookData } from './lib/parse'
 import { fitIssues, generateDocx } from './lib/docx'
 import { formatDeadline, outputFilename } from './lib/date'
@@ -139,6 +140,23 @@ export default function App() {
 
   return (
     <div className="page">
+      <figure className="hero">
+        <img
+          src={churchPhoto}
+          alt="The Church of St. Ignatius Loyola and Loyola School on Park Avenue, New York City"
+          width={1440}
+          height={810}
+        />
+        <figcaption>
+          Photo:{' '}
+          <a href="https://commons.wikimedia.org/wiki/File:Ignatius_Loyola_complex_2021_jeh.jpg" target="_blank" rel="noopener noreferrer">
+            Jim.henderson
+          </a>
+          ,{' '}
+          <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>, via Wikimedia
+          Commons (resized)
+        </figcaption>
+      </figure>
       <header className="masthead">
         <div className="star" aria-hidden="true">✦</div>
         <h1>Christmas Angel Label Maker</h1>
@@ -148,7 +166,7 @@ export default function App() {
       <main>
         <section className="card" aria-labelledby="s-upload">
           <h2 id="s-upload"><span className="step">1</span> Upload Spreadsheet</h2>
-          <details className="howto" open={!fileName}>
+          <details className="howto">
             <summary>How to set up your spreadsheet</summary>
             <p>
               Use one row per angel, with a row of column headings at the top. Name the columns like this
