@@ -1,0 +1,264 @@
+.page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px 16px 48px;
+}
+
+.masthead {
+  text-align: center;
+  margin-bottom: 28px;
+}
+.masthead .star {
+  color: var(--gold);
+  font-size: 28px;
+  line-height: 1;
+}
+.masthead h1 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: normal;
+  font-size: clamp(28px, 6vw, 40px);
+  color: var(--green);
+  margin: 8px 0 6px;
+}
+.masthead p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 18px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 20px 22px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 2px rgb(60 40 20 / 0.04);
+}
+.card h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 19px;
+  margin: 0 0 14px;
+  color: var(--ink);
+}
+.step {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--green);
+  color: #fff;
+  font-size: 15px;
+  flex: none;
+}
+
+.drop {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 32px 16px;
+  border: 2px dashed var(--line-strong);
+  border-radius: 12px;
+  background: var(--soft);
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.15s, background 0.15s;
+}
+.drop:hover,
+.drop.over,
+.drop:focus-within {
+  border-color: var(--green);
+  background: var(--soft-green);
+}
+.drop input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.drop-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+.drop-file {
+  font-size: 17px;
+  font-weight: 600;
+  word-break: break-all;
+}
+.drop-hint {
+  color: var(--muted);
+}
+.privacy {
+  margin: 10px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.field > span {
+  font-weight: 600;
+}
+.field.compact {
+  margin-top: 18px;
+  margin-bottom: 0;
+}
+.field.compact > span {
+  font-weight: normal;
+  color: var(--muted);
+  font-size: 14px;
+}
+input[type='date'],
+input[type='text'],
+select,
+textarea {
+  font: inherit;
+  font-size: 17px;
+  padding: 10px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  max-width: 100%;
+}
+input[type='date'] {
+  width: 240px;
+}
+.field.compact select {
+  font-size: 15px;
+  padding: 8px 10px;
+}
+textarea {
+  resize: vertical;
+}
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.preview {
+  margin: 0;
+  padding: 10px 12px;
+  background: var(--soft-green);
+  border-radius: 8px;
+}
+.muted {
+  color: var(--muted);
+  margin: 0;
+}
+
+.summary {
+  font-size: 17px;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+}
+.summary.good {
+  background: var(--soft-green);
+}
+.summary.bad {
+  background: var(--soft-red);
+}
+.errors {
+  color: var(--red);
+  background: var(--soft-red);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 0 0 12px;
+}
+.errors p {
+  margin: 4px 0;
+}
+.errors ul,
+.issues ul {
+  margin: 6px 0;
+  padding-left: 22px;
+}
+.errors li,
+.issues li {
+  margin: 3px 0;
+}
+
+details.issues summary,
+details.settings summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 4px 0;
+}
+.issues .group h3 {
+  font-size: 15px;
+  margin: 14px 0 4px;
+}
+.issues .info {
+  margin: 12px 0 0;
+}
+
+.generate {
+  text-align: center;
+}
+.generate h2 {
+  justify-content: center;
+}
+button.primary {
+  font: inherit;
+  font-size: 19px;
+  font-weight: 600;
+  padding: 14px 34px;
+  border-radius: 10px;
+  border: none;
+  background: var(--red-deep);
+  color: #fff;
+  cursor: pointer;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 4px rgb(120 20 20 / 0.2);
+}
+button.primary:hover:not(:disabled) {
+  background: var(--red);
+}
+button.primary:disabled {
+  background: #c9bfb5;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+.done {
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  background: var(--soft-green);
+  border-radius: 8px;
+}
+
+.settings {
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+.settings[open] summary {
+  margin-bottom: 10px;
+}
+button.link {
+  font: inherit;
+  background: none;
+  border: none;
+  color: var(--green);
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+}
+
+footer {
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 28px;
+}
