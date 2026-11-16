@@ -240,6 +240,10 @@ describe('layout', () => {
       expect(row).toMatch(/<w:trHeight w:val="7200" w:hRule="exact"\/>|<w:trHeight w:hRule="exact" w:val="7200"\/>/)
     }
     expect(xml).not.toMatch(/<w:tab\/>|w:type="page"|pageBreakBefore/)
+    // Label text is vertically centered in every label cell.
+    const labelCells = xml.match(/<w:tc>(?:(?!<\/w:tc>)[\s\S])*?ANGEL #[\s\S]*?<\/w:tc>/g) ?? []
+    expect(labelCells.length).toBe(199)
+    for (const c of labelCells) expect(c).toContain('<w:vAlign w:val="center"/>')
     // No visible borders.
     expect(xml).not.toMatch(/w:val="single"/)
   })

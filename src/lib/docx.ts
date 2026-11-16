@@ -11,6 +11,7 @@ import {
   TextRun,
   WidthType,
   BorderStyle,
+  VerticalAlignTable,
 } from 'docx'
 import type { AngelRecord, Issue, ParishSettings } from './types'
 import { type LabelLayout, labelsPerPage, pageMargins } from './layouts'
@@ -37,6 +38,8 @@ function labelCell(lines: LabelLine[] | null, scale: number, width: number, layo
   return new TableCell({
     width: { size: width, type: WidthType.DXA },
     margins: layout.padTop ? { top: layout.padTop, marginUnitType: WidthType.DXA } : undefined,
+    // Center the text top-to-bottom so spare space is split evenly above and below.
+    verticalAlign: VerticalAlignTable.CENTER,
     children,
   })
 }
