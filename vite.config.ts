@@ -1,5 +1,8 @@
 import react from '@vitejs/plugin-react'
+import { readFileSync } from 'node:fs'
 import { defineConfig, type Plugin } from 'vite'
+
+const { version } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string }
 
 // Privacy guarantee: the built page may not make ANY network request (connect-src 'none'),
 // so spreadsheet contents can never leave the browser. Added only to production builds
@@ -18,5 +21,7 @@ const csp = (): Plugin => ({
 export default defineConfig({
   base: './',
   plugins: [react(), csp()],
+  // Shown in the footer as "v1.1". Bump "version" in package.json and add a CHANGELOG.md entry for each release.
+  define: { __APP_VERSION__: JSON.stringify(version) },
   build: { chunkSizeWarningLimit: 1200 },
 })

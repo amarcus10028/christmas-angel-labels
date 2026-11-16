@@ -270,3 +270,23 @@ describe('layout', () => {
     expect(fitIssues(r.records, DEFAULT_PARISH, DEC6, l).filter((i) => i.kind === 'too-long')).toEqual([])
   })
 })
+
+describe('spreadsheet template', () => {
+  it('has the expected headings and nothing that would print as a label', async () => {
+    const { buildTemplate, TEMPLATE_HEADERS } = await import('../src/lib/template')
+    const blank = parseWorkbookData(buildTemplate())
+    expect(blank.records).toEqual([])
+    expect(blank.issues.map((i) => i.kind)).toEqual(['no-records'])
+    expect(TEMPLATE_HEADERS).toEqual(HEADER.filter((h) => h !== null))
+  })
+
+  it('a filled-in template parses into labels', async () => {
+    const XLSX = await import('xlsx')
+    const { buildTemplate } = await import('../src/lib/template')
+    const wb = XLSX.read(buildTemplate(), { type: 'array' })
+    XLSX.utils.sheet_add_aoa(wb.Sheets.Angels, [[7, 'Jane', 'Example', 'F', 9, 'Sweater Pink M', 'Books', null]], { origin: 'A2' })
+    const r = parseWorkbookData(new Uint8Array(XLSX.write(wb, { type: 'array', bookType: 'xlsx' })))
+    expect(r.issues.filter((i) => i.level === 'error')).toEqual([])
+    expect(r.records).toEqual([{ number: '7', numberValue: 7, name: 'Jane Example', gender: 'Female', age: '9', gifts: ['Sweater Pink M', 'Books'], row: 2 }])
+  })
+})

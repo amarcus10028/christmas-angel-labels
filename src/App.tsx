@@ -5,7 +5,12 @@ import { parseWorkbookData } from './lib/parse'
 import { fitIssues, generateDocx } from './lib/docx'
 import { formatDeadline, outputFilename } from './lib/date'
 import { DEFAULT_LAYOUT_ID, getLayout, LAYOUTS } from './lib/layouts'
+import { buildTemplate, TEMPLATE_FILENAME } from './lib/template'
 import { DEFAULT_PARISH, type Issue, type IssueKind, type ParishSettings, type ParseResult } from './lib/types'
+
+/** "1.1.0" → "v1.1" (patch number shown only when it isn't 0). */
+const VERSION = 'v' + __APP_VERSION__.replace(/\.0$/, '')
+const CHANGELOG_URL = 'https://github.com/amarcus10028/christmas-angel-labels/blob/main/CHANGELOG.md'
 
 const SETTINGS_KEY = 'angel-labels:settings:v1'
 
@@ -48,6 +53,22 @@ const WARNING_GROUPS: { kind: IssueKind; title: string }[] = [
 
 function plural(n: number, one: string, many = one + 's') {
   return `${n} ${n === 1 ? one : many}`
+}
+
+function saveFile(blob: Blob, name: string) {
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = name
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 10_000)
+}
+
+function downloadTemplate() {
+  const type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  saveFile(new Blob([buildTemplate() as BlobPart], { type }), TEMPLATE_FILENAME)
 }
 
 export default function App() {
@@ -112,14 +133,7 @@ export default function App() {
     try {
       const blob = await generateDocx({ records: result.records, parish, deadlineText, layout })
       const name = outputFilename(deadline)
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = name
-      document.body.appendChild(a)
-      a.click()
-      a.remove()
-      setTimeout(() => URL.revokeObjectURL(url), 10_000)
+      saveFile(blob, name)
       setDone({ name, key: inputsKey })
     } catch {
       setFailure('Something went wrong while making the document. Please try again.')
@@ -195,6 +209,11 @@ export default function App() {
               <li>Gifts print exactly as typed, so include sizes and colors.</li>
               <li>Skipped numbers are fine. Rows don’t need to be in order.</li>
             </ul>
+            <p className="template-line">
+              Starting fresh?{' '}
+              <button type="button" className="link" onClick={downloadTemplate}>Download a blank spreadsheet template</button>{' '}
+              with these headings already filled in.
+            </p>
           </details>
           <label
             className={`drop ${dragOver ? 'over' : ''} ${fileName ? 'has-file' : ''}`}
@@ -227,7 +246,15 @@ export default function App() {
               </>
             )}
           </label>
-          <p className="privacy">Your spreadsheet stays on this computer. Nothing is uploaded to the internet.</p>
+          <p className="privacy">
+            Your spreadsheet stays on this computer. Nothing is uploaded to the internet.
+            {!fileName && (
+              <>
+                {' '}Need a spreadsheet to start from?{' '}
+                <button type="button" className="link" onClick={downloadTemplate}>Download the template</button>.
+              </>
+            )}
+          </p>
         </section>
 
         <section className="card" aria-labelledby="s-date">
@@ -336,6 +363,9 @@ export default function App() {
           Alex Marcus
         </a>{' '}
         for the Christmas Angel ministry at the Church of St. Ignatius Loyola · Works entirely in your browser
+        <div className="version">
+          <a href={CHANGELOG_URL} target="_blank" rel="noopener noreferrer" title="Version history">{VERSION}</a>
+        </div>
       </footer>
     </div>
   )

@@ -83,7 +83,7 @@ export const HEADER: Row = ['Angel #', 'first name', 'Last name', 'gender', 'age
 
 /** 199 recipients, #301–#500 without #429, ages missing for #379–#383, one lowercase gender. */
 export function referenceRows(): Row[] {
-  const rows: Row[] = [HEADER]
+  const rows: Row[] = [[...HEADER]] // copy: tests modify the heading row
   let k = 0
   for (let n = 301; n <= 500; n++) {
     if (n === 429) continue

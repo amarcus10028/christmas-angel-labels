@@ -352,3 +352,13 @@ footer {
 footer a {
   color: inherit;
 }
+.template-line {
+  margin: 12px 0 0 !important;
+}
+.privacy button.link {
+  font-size: inherit;
+}
+footer .version {
+  margin-top: 4px;
+  font-size: 12px;
+}

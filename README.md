@@ -73,7 +73,7 @@ OUT=/some/folder npx vitest run scripts/sample-docs.test.ts
 
 Pushing to `main` runs `.github/workflows/deploy.yml`: install, test, build, then publish `dist/` to GitHub Pages. To turn this on once, go to **Settings → Pages → Build and deployment → Source: GitHub Actions**. The site works at any Pages path, so no custom domain is needed.
 
-**Updating:** change the code, run `npm test`, and push or merge to `main`. The site updates in about a minute.
+**Updating:** change the code, run `npm test`, bump `"version"` in `package.json` (for example 1.1.0 → 1.2.0), add an entry to [CHANGELOG.md](CHANGELOG.md), then push or merge to `main`. The site updates in about a minute, and the new version number appears in the footer, linked to the version history.
 
 **Making next year's labels:** nothing to change. Open the site, upload the new spreadsheet, and pick the new date.
 
