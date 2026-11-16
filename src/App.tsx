@@ -294,6 +294,28 @@ export default function App() {
                 {warnings.length ? ` · ${plural(warnings.length, 'note')} to review` : ''}
               </p>
 
+              {result.columns && result.columns.length > 0 && (
+                <div className="columns-read">
+                  <span className="muted">Columns used:</span>{' '}
+                  {result.columns
+                    .filter((c) => c.field !== 'Gift')
+                    .map((c, i) => (
+                      <span key={i} className="col-chip" title={c.guessed ? 'Recognized from the values in this column' : undefined}>
+                        {c.header}
+                        {c.header.toLowerCase().replace(/[^a-z]/g, '') !== c.field.toLowerCase().replace(/[^a-z]/g, '') && (
+                          <span className="col-field"> → {c.field.toLowerCase()}{c.guessed ? ' (guessed)' : ''}</span>
+                        )}
+                      </span>
+                    ))}
+                  {result.giftColumns.length > 0 && (
+                    <span className="col-chip">{plural(result.giftColumns.length, 'gift column')}</span>
+                  )}
+                  {result.ignoredColumns && result.ignoredColumns.length > 0 && (
+                    <div className="muted ignored">Not printed on labels: {result.ignoredColumns.join(', ')}</div>
+                  )}
+                </div>
+              )}
+
               {errors.length > 0 && (
                 <div className="errors" role="alert">
                   <p><strong>Please fix {errors.length === 1 ? 'this' : 'these'} in Excel, save, and upload the file again:</strong></p>

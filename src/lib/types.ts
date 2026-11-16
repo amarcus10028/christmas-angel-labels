@@ -44,6 +44,10 @@ export interface ParseResult {
   sheetName?: string
   /** Header text for each gift column found, in order. */
   giftColumns: string[]
+  /** How each spreadsheet column was read, left to right. */
+  columns?: { field: string; header: string; guessed?: boolean }[]
+  /** Headings of columns that are not printed on labels. */
+  ignoredColumns?: string[]
 }
 
 export interface ParishSettings {

@@ -1,18 +1,37 @@
 import * as XLSX from 'xlsx'
 import type { AngelRecord, Issue, ParseResult } from './types'
 
-type Role = 'number' | 'first' | 'last' | 'name' | 'gender' | 'age' | 'gift'
+type Role = 'number' | 'first' | 'last' | 'name' | 'gender' | 'age' | 'gift' | 'ignore'
 
-/** Header text → column role. Order matters: first match wins. */
+/**
+ * Header text → column role. Order matters: first match wins.
+ * Headings are compared lowercased with extra spaces/underscores removed, so
+ * "GEN", "Gen." and "gen" are the same.
+ */
 const HEADER_RULES: [Role, RegExp][] = [
-  ['gift', /\b(gift|gifts|choice|choices|wish|wishes|request|requests)\b/],
-  ['first', /\bfirst\b|\bgiven\b/],
-  ['last', /\blast\b|\bsurname\b|\bfamily name\b/],
-  ['name', /\bname\b|\brecipient\b|\bchild\b/],
-  ['number', /\bangel\b|^#$|^(no|num|number)\.?$/],
-  ['gender', /\bgender\b|\bsex\b|^m ?\/ ?f$/],
-  ['age', /\bage\b/],
+  ['gift', /\b(gifts?|choices?|wish(es)?|wish ?list|requests?|toys?|presents?|wants?|items?)\b/],
+  // Columns that are never printed. Checked before names so "Parent name" isn't read as the child's name.
+  ['ignore', /\b(tele?phone|phone|tel|cell|mobile|address|street|apt|city|state|zip|e-?mail|parent|guardian|mother|father|mom|dad|notes?|comments?|table|member|volunteer|donor|sponsor|svdp|date|dob|birth|school|grade|signed|picked|status)\b/],
+  ['first', /\bfirst\b|\bgiven\b|^f ?name$/],
+  ['last', /\blast\b|\bsurname\b|\bfamily name\b|^l ?name$/],
+  ['name', /\bnames?\b|\brecipients?\b|\bchild\b|\bchild's\b|\bkids?\b/],
+  ['number', /\bangel\b|^#$|^(no|num|number|id|tag|tag #|ticket|ticket #)\.?$/],
+  ['gender', /\bgender\b|\bsex\b|^gen\.?$|^gndr$|^g$|^(m ?\/ ?f|f ?\/ ?m|boy ?\/ ?girl|girl ?\/ ?boy)$/],
+  ['age', /\bages?\b|^(yrs?|years?)\.?$|\byears old\b|\(yrs?\)/],
 ]
+
+const GENDER_VALUE = /^(m|f|male|female|boy|girl|masc|fem)$/i
+
+/** Plain-language name of each field, for showing the volunteer how columns were read. */
+const ROLE_LABEL: Record<Exclude<Role, 'ignore'>, string> = {
+  number: 'Angel number',
+  first: 'First name',
+  last: 'Last name',
+  name: 'Name',
+  gender: 'Gender',
+  age: 'Age',
+  gift: 'Gift',
+}
 
 function norm(s: string): string {
   return s.toLowerCase().replace(/[_\s]+/g, ' ').trim()
@@ -49,6 +68,24 @@ interface ColumnMap {
   age?: number
   gifts: number[]
   giftHeaders: string[]
+  /** How each column was read, left to right. */
+  columns: { field: string; header: string; guessed?: boolean }[]
+  /** Headings of columns that are not printed (phone, address, notes…). */
+  ignored: string[]
+}
+
+/** Non-empty values in a column below the header (up to 300 rows). */
+function columnValues(sheet: XLSX.WorkSheet, headerRow: number, c: number, lastRow: number): string[] {
+  const out: string[] = []
+  for (let r = headerRow + 1; r <= Math.min(lastRow, headerRow + 300); r++) {
+    const v = cellText(sheet[XLSX.utils.encode_cell({ r, c })])
+    if (v) out.push(v)
+  }
+  return out
+}
+
+function mostly(values: string[], test: (v: string) => boolean): boolean {
+  return values.length >= 3 && values.filter(test).length / values.length >= 0.9
 }
 
 function findColumns(sheet: XLSX.WorkSheet): ColumnMap | null {
@@ -59,17 +96,45 @@ function findColumns(sheet: XLSX.WorkSheet): ColumnMap | null {
     const roles: Partial<Record<Role, number>> = {}
     const gifts: number[] = []
     const giftHeaders: string[] = []
+    const headers = new Map<number, string>()
+    const unknown: number[] = []
     for (let c = range.s.c; c <= range.e.c; c++) {
       const text = cellText(sheet[XLSX.utils.encode_cell({ r, c })])
+      headers.set(c, text)
       const role = classifyHeader(text)
-      if (!role) continue
+      if (!role) {
+        unknown.push(c)
+        continue
+      }
+      if (role === 'ignore') continue
       if (role === 'gift') {
         gifts.push(c)
         giftHeaders.push(text)
       } else if (roles[role] === undefined) roles[role] = c
+      else unknown.push(c)
     }
     const hasName = roles.first !== undefined || roles.name !== undefined
     if (roles.number === undefined || !hasName) continue
+
+    // No recognizable gender/age heading? Look at the values instead.
+    const guessed = new Set<number>()
+    if (roles.gender === undefined) {
+      const c = unknown.find((c) => mostly(columnValues(sheet, r, c, range.e.r), (v) => GENDER_VALUE.test(v)))
+      if (c !== undefined) {
+        roles.gender = c
+        guessed.add(c)
+      }
+    }
+    if (roles.age === undefined) {
+      // Only unlabeled columns: a labeled number column ("Grade", "Table #") is something else.
+      const c = unknown.find(
+        (c) => !headers.get(c) && c !== roles.gender && mostly(columnValues(sheet, r, c, range.e.r), (v) => /^\d{1,3}$/.test(v) && +v <= 120),
+      )
+      if (c !== undefined) {
+        roles.age = c
+        guessed.add(c)
+      }
+    }
 
     // Extra unlabeled columns right after the last gift column are also gifts, if they hold anything.
     if (gifts.length) {
@@ -82,16 +147,35 @@ function findColumns(sheet: XLSX.WorkSheet): ColumnMap | null {
         giftHeaders.push(`Column ${XLSX.utils.encode_col(c)}`)
       }
     }
+    const name = roles.first === undefined ? roles.name : undefined
+    const used = new Map<number, Exclude<Role, 'ignore'>>()
+    const put = (role: Exclude<Role, 'ignore'>, c: number | undefined) => c !== undefined && used.set(c, role)
+    put('number', roles.number)
+    put('first', roles.first)
+    put('last', roles.last)
+    put('name', name)
+    put('gender', roles.gender)
+    put('age', roles.age)
+    gifts.forEach((c) => used.set(c, 'gift'))
+    const columns = [...used.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .map(([c, role]) => ({ field: ROLE_LABEL[role], header: headers.get(c) || `Column ${XLSX.utils.encode_col(c)}`, guessed: guessed.has(c) || undefined }))
+    const ignored = [...headers.entries()]
+      .filter(([c, h]) => h && !used.has(c))
+      .map(([, h]) => h)
+
     return {
       headerRow: r,
       number: roles.number,
       first: roles.first,
       last: roles.last,
-      name: roles.first === undefined ? roles.name : undefined,
+      name,
       gender: roles.gender,
       age: roles.age,
       gifts,
       giftHeaders,
+      columns,
+      ignored,
     }
   }
   return null
@@ -242,12 +326,20 @@ export function parseWorkbook(wb: XLSX.WorkBook): ParseResult {
     issues.push({ level: 'error', kind: 'no-records', message: 'No recipients were found below the heading row.' })
   }
 
+  // A whole missing column gets one note, not one warning per angel.
+  if (records.length && map.gender === undefined)
+    issues.push({ level: 'info', kind: 'note', message: 'No gender column was found, so the labels won’t show gender. If there is one, give it the heading “gender”.' })
+  if (records.length && map.age === undefined)
+    issues.push({ level: 'info', kind: 'note', message: 'No age column was found, so the labels won’t show ages. If there is one, give it the heading “age”.' })
+  if (records.length && !map.gifts.length)
+    issues.push({ level: 'warning', kind: 'note', message: 'No gift columns were found, so every label will say “Gift choices not provided.” Gift column headings need the word “gift”, such as “first gift”.' })
+
   for (const rec of records) {
-    if (!rec.age)
+    if (!rec.age && map.age !== undefined)
       issues.push({ level: 'warning', kind: 'missing-age', row: rec.row, message: `Row ${rec.row}: ${who(rec)} has no age. The age line will be left off.` })
-    if (!rec.gender)
+    if (!rec.gender && map.gender !== undefined)
       issues.push({ level: 'warning', kind: 'missing-gender', row: rec.row, message: `Row ${rec.row}: ${who(rec)} has no gender. That line will be left off.` })
-    if (!rec.gifts.length)
+    if (!rec.gifts.length && map.gifts.length)
       issues.push({ level: 'warning', kind: 'no-gifts', row: rec.row, message: `Row ${rec.row}: ${who(rec)} has no gift choices. The label will say “Gift choices not provided.”` })
   }
 
@@ -265,5 +357,5 @@ export function parseWorkbook(wb: XLSX.WorkBook): ParseResult {
     })
   }
 
-  return { records, issues, sheetName, giftColumns: map.giftHeaders }
+  return { records, issues, sheetName, giftColumns: map.giftHeaders, columns: map.columns, ignoredColumns: map.ignored }
 }

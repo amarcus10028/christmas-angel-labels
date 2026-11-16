@@ -10,13 +10,15 @@ Everything happens inside the browser. The spreadsheet is never uploaded: the pu
 
 The app finds the heading row on its own (title or instruction rows above it are fine) and matches the columns by their heading text:
 
-| Field | Headings it recognises | Required |
+| Field | Headings it recognises (any capitalization) | Required |
 | --- | --- | --- |
-| Angel number | `Angel #`, `Angel No.`, `#`, `Number` | Yes |
-| Name | `first name` + `Last name`, or a single `Name` column | Yes |
-| Gender | `gender`, `sex` (M/F become Male/Female; anything else prints as typed) | No |
-| Age | `age` (printed exactly as typed, e.g. `12` or `adult`) | No |
-| Gifts | every column whose heading contains `gift`, `choice`, `wish` or `request`, in left-to-right order. There is no limit on how many. | No |
+| Angel number | `Angel #`, `Angel Sheet #`, `Angel No.`, `#`, `Number`, `ID`, `Tag #` | Yes |
+| Name | `first name` + `Last name`, or a single `Name` / `Child's name` column | Yes |
+| Gender | `gender`, `GEN`, `sex`, `M/F`, `Boy/Girl`. Also recognised from M/F values under any heading. M/F become Male/Female; anything else prints as typed. | No |
+| Age | `age`, `ages`, `yrs`, `Age (yrs)`, `years old` (printed exactly as typed, e.g. `12` or `adult`) | No |
+| Gifts | every column whose heading contains `gift`, `choice`, `wish`, `request`, `toy` or `present`, in left-to-right order. There is no limit on how many. | No |
+
+Phone, address, parent/guardian, notes, table, volunteer and date columns are ignored and never printed. The page lists them under "Not printed on labels" and shows how each other column was read.
 
 Blank rows and lone notes such as "Total: 199" are ignored. Labels are sorted by angel number, never renumbered, and gaps such as #429 are allowed.
 

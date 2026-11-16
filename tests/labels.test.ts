@@ -290,3 +290,71 @@ describe('spreadsheet template', () => {
     expect(r.records).toEqual([{ number: '7', numberValue: 7, name: 'Jane Example', gender: 'Female', age: '9', gifts: ['Sweater Pink M', 'Books'], row: 2 }])
   })
 })
+
+describe('recognizing other parishes’ column headings', () => {
+  const parse = (rows: Row[]) => parseWorkbookData(workbookBytes(rows))
+
+  it('a title row, "GEN", phone/address columns and long gift headings (layout of a real 2026 list, fake data)', () => {
+    const rows: Row[] = [
+      ['Christmas Angels List for Example Parish - Drop-off Saturday, December 19, 2026'],
+      ['Angel Sheet #', 'First Name', 'Last Name', 'GEN', 'Age', 'Telephone #', 'Address', 'Gift Choice 1 - upto $50 Value', 'Gift Choice 2 - upto $50 Value', 'Gift Choice 3 - upto $50 Value'],
+      [1, 'Ana', 'Example', 'M', 5, '(555) 010-0000', '1 Main St', '10/12 Large Blue Shirts', 'Blue Pants', 'Gift Cards (Target, etc)'],
+      [2, 'Ben ', 'Sample', ' F', 17, '-', '2 Main St', 'Gift Card Target', null, null],
+      [3, 'Cy', 'Test', 'm', 50, null, null, null, null, null],
+    ]
+    const r = parse(rows)
+    expect(r.issues.filter((i) => i.level === 'error')).toEqual([])
+    expect(r.records.map((x) => [x.name, x.gender, x.age])).toEqual([['Ana Example', 'Male', '5'], ['Ben Sample', 'Female', '17'], ['Cy Test', 'Male', '50']])
+    expect(r.columns!.map((c) => c.field)).toEqual(['Angel number', 'First name', 'Last name', 'Gender', 'Age', 'Gift', 'Gift', 'Gift'])
+    expect(r.ignoredColumns).toEqual(['Telephone #', 'Address'])
+    // Phone numbers and addresses never reach a label.
+    for (const rec of r.records) expect(JSON.stringify(rec)).not.toMatch(/555|Main St/)
+    expect(r.issues.filter((i) => i.kind === 'missing-gender')).toEqual([])
+    expect(r.issues.filter((i) => i.kind === 'no-gifts').length).toBe(1)
+  })
+
+  it.each([
+    ['Gender'], ['GEN'], ['Gen.'], ['sex'], ['M/F'], ['Boy/Girl'], ['G'],
+  ])('"%s" is read as gender', (h) => {
+    const r = parse([['Angel #', 'Name', h], [1, 'Ana', 'F'], [2, 'Bo', 'M']])
+    expect(r.records.map((x) => x.gender)).toEqual(['Female', 'Male'])
+  })
+
+  it.each([['Age'], ['AGES'], ['Yrs'], ['Age (yrs)'], ['years old']])('"%s" is read as age', (h) => {
+    const r = parse([['Angel #', 'Name', h], [1, 'Ana', 7]])
+    expect(r.records[0].age).toBe('7')
+  })
+
+  it.each([['Angel Sheet #'], ['ANGEL NO.'], ['Tag #'], ['ID'], ['#']])('"%s" is read as the angel number', (h) => {
+    expect(parse([[h, 'Name'], [12, 'Ana']]).records[0].number).toBe('12')
+  })
+
+  it('a gender column with an unknown heading is recognized from its M/F values', () => {
+    const r = parse([['Angel #', 'Name', 'Kind', 'Age'], [1, 'Ana', 'F', 3], [2, 'Bo', 'M', 4], [3, 'Cy', 'Girl', 5], [4, 'Di', 'boy', 6]])
+    expect(r.records.map((x) => x.gender)).toEqual(['Female', 'Male', 'Female', 'Male'])
+    expect(r.columns!.find((c) => c.field === 'Gender')).toEqual({ field: 'Gender', header: 'Kind', guessed: true })
+  })
+
+  it('a "Parent name" column is not mistaken for the child’s name', () => {
+    const r = parse([['Angel #', 'Parent name', 'Child name', 'age'], [1, 'Pat Parent', 'Kid Example', 6]])
+    expect(r.records[0].name).toBe('Kid Example')
+    expect(r.ignoredColumns).toEqual(['Parent name'])
+  })
+
+  it('a labeled number column that isn’t age (e.g. "Table #", "Grade") is not used as age', () => {
+    const r = parse([['Table #', 'Angel #', 'Name', 'Grade'], [1, 1, 'Ana', 3], [1, 2, 'Bo', 4], [2, 3, 'Cy', 5]])
+    expect(r.records.map((x) => x.number)).toEqual(['1', '2', '3'])
+    expect(r.records.every((x) => x.age === '')).toBe(true)
+  })
+
+  it('a whole missing column gives one note instead of a warning per angel', () => {
+    const rows: Row[] = [['Angel #', 'Name', 'Gift 1']]
+    for (let n = 1; n <= 150; n++) rows.push([n, `Kid ${n}`, 'Ball'])
+    const r = parse(rows)
+    expect(r.issues.filter((i) => i.level === 'warning')).toEqual([])
+    expect(r.issues.filter((i) => i.kind === 'note').map((i) => i.message)).toEqual([
+      expect.stringMatching(/^No gender column was found/),
+      expect.stringMatching(/^No age column was found/),
+    ])
+  })
+})

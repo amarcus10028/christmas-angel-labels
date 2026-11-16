@@ -362,3 +362,27 @@ footer .version {
   margin-top: 4px;
   font-size: 12px;
 }
+
+/* How spreadsheet columns were read */
+.columns-read {
+  font-size: 14px;
+  margin: -4px 0 12px;
+  line-height: 2;
+}
+.col-chip {
+  display: inline-block;
+  padding: 0 8px;
+  margin: 0 4px 0 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: #fff;
+  line-height: 1.7;
+  white-space: nowrap;
+}
+.col-field {
+  color: var(--green);
+}
+.columns-read .ignored {
+  line-height: 1.5;
+  margin-top: 2px;
+}

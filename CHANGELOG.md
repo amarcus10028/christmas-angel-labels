@@ -3,6 +3,14 @@
 The version shown at the bottom of the site comes from `"version"` in `package.json`.
 For each update: bump that number, add an entry at the top of this file, and push to `main`.
 
+## v1.2 — November 16, 2026
+
+- **Recognizes more column headings**, such as `GEN`, `M/F`, `Boy/Girl`, `Yrs`, `Angel Sheet #`, `Tag #` and `ID`. Capitalization and punctuation don't matter.
+- **Recognizes a gender column from its values** (M/F, Male/Female, Boy/Girl) even when the heading is something else.
+- **Ignores phone, address, parent, notes, table and volunteer columns**, and lists them as "Not printed on labels". A "Parent name" column is never mistaken for the child's name.
+- **Shows which columns it used**, for example "GEN → gender".
+- **One note for a missing column** instead of a warning for every angel (for example, "No gender column was found").
+
 ## v1.1 — November 16, 2026
 
 - **Label text is centered top to bottom** on each label. Before, it started at the very top edge with the spare space left at the bottom.
